@@ -13,38 +13,48 @@ signature: v1.eyJzdWIiOiI2MDg5IiwiYXVkIjoiY2hhbGxlbmdlOndoYXQtaXQtc2hvd3MiLCJpYX
   import Callout from '#lib/kb/Callout.svelte';
   import RenderStamp from '#lib/kb/RenderStamp.svelte';
 
-  const issues = {
-    parser: 'https://github.com/ztrafny/what-it-shows/issues/1',
-    hint: 'https://github.com/ztrafny/what-it-shows/issues/2',
-    'one-day': 'https://github.com/ztrafny/what-it-shows/issues/3',
+  const repo = 'https://github.com/ztrafny/what-it-shows/issues';
+  const tickets = {
+    parser: { href: `${repo}/1`, state: 'closed: fixed' },
+    hint: { href: `${repo}/2`, state: "closed: won't fix" },
+    'one-day': { href: `${repo}/3`, state: 'open' },
   };
 </script>
 
-[#4471](/kb/incidents/4471) is marked known, with one fix queued. It holds three problems.
+[#4471](/kb/incidents/4471) was marked known, with one fix queued. It held three problems.
 The desk merged them because the subject lines matched ([decision 0001](/kb/decisions/0001-dedupe-by-subject)),
 and a subject line says what a person saw, not what broke.
 
 ## The split
 
-<SplitTable ticket={4471} {issues} />
+<SplitTable ticket={4471} {tickets} />
 
-Each problem now has its own ticket. The counts come from the export, after duplicate rows
-are removed (the export repeats some reports; one id is one report).
+Each problem has its own ticket. The counts come from the export, after duplicate rows are
+removed (the export repeats some reports; one id is one report). They follow the desk's view:
+the desk files the one-day reports under their cause, so those 5 count under parser too.
+
+## Engineering update, 5 October
+
+#4471 is closed. Two of its problems are done; one is not.
+
+- **parser:** fixed (`fix(dates): parse dd/mm for eu locales`). Ticket closed.
+- **hint:** won't fix, because the booking-v3 form is retired. Ticket closed.
+- **one-day:** no fix. Neither change moves a date by one day, so this ticket stays open.
 
 ## How to tell them apart
 
 - **parser:** the tenant writes the day first, and the report came through the app, by email,
   or through booking-v2. The shared parser reads the date month first, so day and month swap:
-  7 April becomes 4 July. This is the fix that is queued.
+  7 April becomes 4 July.
 - **hint:** the tenant writes the day first and runs booking-v3, and the report came through
   the form. The form tells people to type month first, then reads what they typed day first.
-  Day and month swap here too, but the queued parser fix does not touch the form.
+  Day and month swap here too, and the parser fix does not touch the form.
 - **one-day:** the date moves by one day and the month stays. "Tuesday 6 October showed as
   Monday." A parser that swaps day and month cannot do that. Two of these reports name
   different time zones for the same meeting, so look at time-zone handling first.
 
 <Callout kind="warn">
-Do not close the hint or one-day tickets when the parser fix ships. They need their own fixes.
+Closing #4471 did not close the one-day problem. Keep its ticket open until someone fixes it.
 </Callout>
 
 ## What intake tagged
@@ -58,5 +68,6 @@ where the tag and the cause disagree.
 
 - Merge on cause, not on subject. The same subject came from all three problems.
 - Read a sample of bodies before you mark a ticket known.
+- Close a merged ticket only when every problem in it has an answer.
 
 <RenderStamp {signature} />
